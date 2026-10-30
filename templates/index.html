@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Cloud Task Manager</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+<body>
+
+    <div class="main-layout">
+
+        <!-- SIDEBAR -->
+
+        <div class="sidebar">
+
+            <div class="sidebar-logo">
+
+                <h2>
+                    ☁️ CTM
+                </h2>
+
+            </div>
+
+            <ul class="sidebar-menu">
+
+                <li>
+                    <a href="/">
+                        🏠 Dashboard
+                    </a>
+                </li>
+
+                <li>
+                    <a href="/">
+                        📋 All Tasks
+                    </a>
+                </li>
+
+                <li>
+                    <a href="/completed">
+                        ✅ Completed
+                    </a>
+                </li>
+
+                <li>
+                    <a href="/pending">
+                        ⏳ Pending
+                    </a>
+                </li>
+
+                <li>
+                    <a href="/">
+                        📊 Analytics
+                    </a>
+                </li>
+
+                <li>
+                    <a href="/settings">
+                        ⚙️ Settings
+                    </a>
+                </li>
+
+                <li>
+                    <a href="/logout">
+                        🚪 Logout
+                    </a>
+                </li>
+
+            </ul>
+
+        </div>
+
+        <!-- MAIN CONTENT -->
+
+        <div class="container">
+
+            <!-- NAVBAR -->
+
+            <div class="navbar">
+
+                <div class="logo">
+
+                    <h1>
+                        Cloud Task Manager 🚀
+                    </h1>
+
+                </div>
+
+                <div class="nav-right">
+                    <a href="/export_pdf" class="nav-btn">
+                        📄 Export PDF
+                    </a>
+                    <span class="welcome-text">
+                        Welcome, {{ username }} 👋
+                    </span>
+                    <button id="theme-toggle" class="theme-btn">
+                        🌙
+                    </button>
+
+                </div>
+
+            </div>
+
+            <!-- SEARCH -->
+
+            <div class="top-bar">
+
+                <form method="GET" class="search-form">
+
+                    <input type="text"
+                           name="search"
+                           placeholder="🔍 Search Tasks...">
+
+                    <select name="priority">
+
+                        <option value="">
+                            Priority
+                        </option>
+
+                        <option value="High">
+                            High 🔴
+                        </option>
+
+                        <option value="Medium">
+                            Medium 🟡
+                        </option>
+
+                        <option value="Low">
+                            Low 🟢
+                        </option>
+
+                    </select>
+                    <select name="category">
+
+                        <option value="Work">
+                            💼 Work
+                        </option>
+
+                        <option value="Study">
+                            📚 Study
+                        </option>
+
+                        <option value="Personal">
+                            🏠 Personal
+                        </option>
+
+                        <option value="Fitness">
+                            💪 Fitness
+                        </option>
+
+                    </select>
+                    <select name="sort">
+                        <option value="">Sort By</option>
+                        <option value="date">📅 Due Date</option>
+                        <option value="priority">🚨 Priority</option>
+                        <option value="latest">🆕 Latest</option>
+                    </select>
+
+                    <input type="date"
+                           name="due_date">
+
+                    <button type="submit">
+                        Search
+                    </button>
+
+                </form>
+
+            </div>
+
+            <!-- STATS -->
+
+            <div class="stats-container">
+
+                <div class="stats-card">
+
+                    <h3>Total Tasks</h3>
+
+                    <h1>{{ tasks|length }}</h1>
+
+                </div>
+
+                <div class="stats-card">
+
+                    <h3>Pending Tasks</h3>
+
+                    <h1>
+                        {{ tasks|selectattr(5, 'equalto', 0)|list|length }}
+                    </h1>
+
+                </div>
+
+                <div class="stats-card">
+
+                    <h3>Completed Tasks</h3>
+
+                    <h1>
+                        {{ tasks|selectattr(5, 'equalto', 1)|list|length }}
+                    </h1>
+
+                </div>
+
+            </div>
+            <!-- ANALYTICS -->
+            <div class="progress-container">
+                <h3>Overall Progress</h3>
+
+                <div class="progress-bar">
+                    <div class="progress-fill"
+                        style="width: {{ progress }}%;">
+                    </div>
+                </div>
+
+                <p>{{ progress }}% Completed</p>
+            </div>
+
+            <div class="chart-container">
+
+                <div class="chart-card">
+
+                    <h2>
+                        Task Analytics 📊
+                    </h2>
+
+                    <canvas id="taskChart"></canvas>
+
+                </div>
+
+            </div>
+          <!-- ADD TASK -->
+
+            <div class="task-form-box">
+
+                <form method="POST" class="task-form">
+
+                    <input type="text"
+                        name="task"
+                        placeholder="Enter New Task"
+                        required>
+
+                    <input type="date"
+                        name="due_date"
+                        required>
+
+                    <select name="priority">
+
+                        <option value="High">
+                            High 🔴
+                        </option>
+
+                        <option value="Medium">
+                            Medium 🟡
+                        </option>
+
+                        <option value="Low">
+                            Low 🟢
+                        </option>
+
+                    </select>
+
+                    <select name="category">
+
+                        <option value="Work">
+                            💼 Work
+                        </option>
+
+                        <option value="Study">
+                            📚 Study
+                        </option>
+
+                        <option value="Personal">
+                            🏠 Personal
+                        </option>
+
+                        <option value="Fitness">
+                            💪 Fitness
+                        </option>
+
+                    </select>
+
+                    <button type="submit">
+                        + Add Task
+                    </button>
+
+                </form>
+
+            </div>  
+            <!-- CALENDAR -->
+
+            <div class="calendar-section">
+
+                <h2>
+                    Task Calendar 📅
+                </h2>
+
+                <div class="calendar-grid">
+
+                    {% for task in tasks %}
+
+                    <div class="calendar-card">
+
+                        <h3>
+                            {{ task[1] }}
+                        </h3>
+
+                        <p>
+                            📅 {{ task[2] }}
+                        </p>
+
+                        <span>
+                            {{ task[4] }}
+                        </span>
+
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+            <!-- KANBAN BOARD -->
+
+            <div class="kanban-section">
+
+                <h2>
+                    Kanban Board 🚀
+                </h2>
+
+                <div class="kanban-board">
+
+                    <!-- TODO -->
+
+                    <div class="kanban-column" id="todo-column">
+
+                        <h3>
+                            📝 Todo
+                        </h3>
+
+                        {% for task in tasks %}
+
+                            {% if task[5] == 0 %}
+
+                           <div class="kanban-card" draggable="true">
+
+                                <h4>
+                                    {{ task[1] }}
+                                </h4>
+
+                                <p>
+                                    📅 {{ task[2] }}
+                                </p>
+
+                                <span>
+                                    {{ task[3] }}
+                                </span>
+
+                            </div>
+
+                            {% endif %}
+
+                        {% endfor %}
+
+                    </div>
+
+                    <!-- COMPLETED -->
+
+                    <div class="kanban-column" id="completed-column">
+
+                        <h3>
+                            ✅ Completed
+                        </h3>
+                        {% for task in tasks %}
+                            {% if task[5] == 1 %}
+                           
+                            <div class="kanban-card completed-card">
+
+                                <h4>
+                                    {{ task[1] }}
+                                </h4>
+
+                                <p>
+                                    📅 {{ task[2] }}
+                                </p>
+
+                                <span>
+                                    {{ task[3] }}
+                                </span>
+
+                            </div>
+
+                            {% endif %}
+
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- TASKS -->
+
+            <div class="task-section">
+
+                <h2>
+                    Your Tasks
+                </h2>
+
+                <ul class="task-list">
+
+                    {% for task in tasks %}
+
+                    <li class="task-card">
+
+                        <div class="task-info">
+
+                            {% if task[5] == 1 %}
+
+                            <h3>
+                                <s>{{ task[1] }}</s> ✅
+                            </h3>
+
+                            {% else %}
+
+                            <h3>
+                                {{ task[1] }}
+                            </h3>
+
+                            {% endif %}
+
+                            <p>
+                                📅 {{ task[2] }}
+                            </p>
+
+                           <p class="priority {{ task[3]|lower }}">
+                                🚨 {{ task[3] }}
+                            </p>
+                            <p>
+                                🗂️ {{ task[4] }}
+                            </p>
+                            <p>
+                                {% if task[5] == 1 %}
+                                    <span class="status completed">Completed</span>
+                                {% elif task[2] < current_date %}
+                                    <span class="status overdue">Overdue</span>
+                                {% else %}
+                                    <span class="status pending">Pending</span>
+                                {% endif %}
+                            </p>
+                        </div>
+
+                        <div class="task-buttons">
+
+                            <a href="/complete/{{ task[0] }}">
+                                ✅
+                            </a>
+
+                            <a href="/edit/{{ task[0] }}">
+                                ✏️
+                            </a>
+
+                            <a href="/delete/{{ task[0] }}">
+                                🗑️
+                            </a>
+
+                        </div>
+
+                    </li>
+
+                    {% endfor %}
+
+                </ul>
+
+            </div>
+
+        </div>
+
+    </div>
+    <script>
+
+        const toggleBtn =
+        document.getElementById("theme-toggle");
+
+        toggleBtn.onclick = () => {
+
+            document.body.classList.toggle("light-mode");
+
+            if(document.body.classList.contains("light-mode")){
+
+                toggleBtn.innerHTML = "☀️";
+
+            }else{
+
+                toggleBtn.innerHTML = "🌙";
+            }
+        };
+
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+    const ctx = document.getElementById('taskChart');
+
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Completed', 'Pending'],
+            datasets: [{
+                data: [
+                    {{ tasks|selectattr(5, 'equalto', 1)|list|length }},
+                    {{ tasks|selectattr(5, 'equalto', 0)|list|length }}
+                ]
+            }]
+        }
+    });
+    </script>
+    <script>
+
+    const cards = document.querySelectorAll(".kanban-card");
+    const columns = document.querySelectorAll(".kanban-column");
+
+    cards.forEach(card => {
+
+        card.addEventListener("dragstart", () => {
+            card.classList.add("dragging");
+        });
+
+        card.addEventListener("dragend", () => {
+            card.classList.remove("dragging");
+        });
+
+    });
+
+    columns.forEach(column => {
+
+        column.addEventListener("dragover", e => {
+
+            e.preventDefault();
+
+            const card =
+            document.querySelector(".dragging");
+
+            if(card){
+                column.appendChild(card);
+            }
+
+        });
+
+    });
+
+    </script>
+</body>
+
+</html>
